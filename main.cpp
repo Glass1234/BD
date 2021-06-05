@@ -213,28 +213,31 @@ private:
 
 int main()
 {
-    menu sessions;
     float num = 0;
+    dish order;
     while (true)
     {
-        dish order;
-        cout << "------------------------------------------" << endl;
-        cout << "Введите dish:";
+        menu sessions;
+        cout << "*---------------------------------------------" << endl;
+        cout << "| Введите dish:";
         cin >> order.dish;
-        cout << "Введите dish name:";
-        cin >> order.dish_name;
-        cout << "Введите колчество этого блюда:";
+        cout << "| Введите dish name:";
+        cin.ignore();
+        getline(cin, order.dish_name);
+        cout << "| Введите колчество этого блюда:";
         cin >> order.quantity;
         sessions.add(order, order.quantity);
         num += sessions.price();
-        cout << "Сделать ещё заказ ? | (1) - да, (0) - нет:";
+        cout << "| Сделать ещё заказ ? | (1) - да, (0) - нет:";
         int n;
         cin >> n;
-        cout << "------------------------------------------" << endl;
+        cout << "*---------------------------------------------" << endl;
         if (!n)
         {
             break;
         }
     }
-    cout << "Ваша сумма: " << num << endl;
+    cout << "#####################" << endl;
+    cout << "# Ваша сумма: " << num << endl;
+    cout << "#####################" << endl;
 }
