@@ -3,41 +3,190 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
+
 using namespace std;
 
 struct dish
 {
-    string dish;
-    string dish_name;
-    short int quantity = 1;
-    float price = 0;
+    string dish;      //класс блюда
+    string dish_name; //имя
+    int quantity;     //количество
+    int price_for_1;  //цена за 1 блюдо
 };
 
 class menu
 {
 private:
-    string name_file = "warehouse/";
-    dish order;
-    vector<vector<string>> tmp_2;
-    vector<string> this_dish;
-    short int iter;
-    short int n;
+    string name_file = "warehouse/"; //переменная которая хранит какой фал открывать
+    dish order;                      //блюдо
+    vector<vector<string>> tmp_2;    //сам текстовый файл, представленный в векторном формате
+    short int iter;                  //номер нашего блюда в меню
+    short int n;                     //итоговое количество блюда в файле
+
+    vector<string> this_dish; //конкретно наше блюдо
+    short int num;            //номер числа
+    short int quantity;       //колчиесвто блюда
 
 public:
-    void add(dish this_dish, int n)
+    void print(string str) //вывод меню данного класса блюда
     {
-        this->order = to_lower(this_dish);
-        this->name_file += this_dish.dish + ".txt";
-        this->n = n;
-        this->order.price = search();
-        rewriting();
+        fstream file;
+        this->name_file += str + ".txt";
+        file.open(name_file, fstream::in | fstream::out);
+        vector<vector<string>> tmp_2;
+        if (file.is_open()) //открываем файл для вывода его содержимого
+        {
+            while (!file.eof())
+            {
+                string tmp;
+                getline(file, tmp);
+                tmp_2.push_back(search(tmp));
+            }
+            file.close();
+        }
+        else
+        {
+            cout << "ошибка 1" << endl;
+        }
+
+        setlocale(LC_ALL, "");
+        for (int i = 0; i < tmp_2.size(); i++)
+        {
+            {
+                int num = search_max_string(tmp_2);
+                cout << i + 1 << ") " << tmp_2[i][0] << setw(num - tmp_2[i][0].size() + 10) << tmp_2[i][1] << endl;
+            }
+        }
+        this->tmp_2 = tmp_2;
+        cout << "Выберите блюдо из списка: ";
+        cin >> this->num;
+
+        cout << "Количество блюда: ";
+        cin >> this->quantity;
+        this->this_dish = tmp_2[this->num - 1];
     }
-    float price()
+
+    vector<string> add_dish() //возвращаем наше блюдо и меняем значение в файле
     {
-        return this->order.price * n;
+        vector<string> array = this->this_dish;
+        int tmp_num = stoi(array[array.size() - 1]) - this->quantity;
+        array[array.size() - 1] = to_string(stoi(array[array.size() - 1]) - tmp_num);
+        this->this_dish = line_processing(this->this_dish, this->quantity);
+
+        fstream file;
+        file.open(name_file, fstream::out | fstream::trunc);
+
+        if (file.is_open())
+        {
+            file << this->this_dish[0];
+            file << ',';
+            file << this->this_dish[1];
+            file << ',';
+            file << this->this_dish[2];
+            file << '\n';
+            for (int i = 0; i < this->tmp_2.size(); i++)
+            {
+                if (i != this->num - 1)
+                {
+                    file << this->tmp_2[i][0];
+                    file << ',';
+                    file << this->tmp_2[i][1];
+                    file << ',';
+                    file << this->tmp_2[i][2];
+                    if (i != this->tmp_2.size() - 1)
+                    {
+                        file << '\n';
+                    }
+                }
+            }
+            file.close();
+        }
+        else
+        {
+            cout << "ошибка 2" << endl;
+        }
+
+        return array;
+    }
+
+    void top_menu(vector<string> str) //вывод актуального меню
+    {
+        vector<vector<string>> tmp_2;
+        for (int i = 0; i < str.size(); i++)
+        {
+            fstream file;
+            this->name_file += str[i] + ".txt";
+            file.open(name_file, fstream::in | fstream::out);
+
+            if (file.is_open()) //открываем файл для вывода его содержимого
+            {
+                while (!file.eof())
+                {
+                    string tmp;
+                    getline(file, tmp);
+                    tmp_2.push_back(search(tmp));
+                }
+                file.close();
+                cout << "------------" << endl;
+                top_menu_max(tmp_2);
+                tmp_2.clear();
+                this->name_file = "warehouse/";
+            }
+            else
+            {
+                cout << "ошибка 3" << endl;
+            }
+        }
     }
 
 private:
+    void top_menu_max(vector<vector<string>> array)
+    {
+        bool skip = false;
+        while (!skip)
+        {
+            skip = true;
+
+            for (int i = 0; i < array.size() - 1; i++)
+            {
+                for (int k = 2; k < array[i].size(); k++)
+                {
+                    if (stoi(array[i + 1][k]) > stoi(array[i][k]))
+                    {
+                        vector<string> tmp = array[i];
+                        array[i] = array[i + 1];
+                        array[i + 1] = tmp;
+                        skip = false;
+                    }
+                }
+            }
+        }
+
+        setlocale(LC_ALL, "");
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = 0; j < array[i].size(); j++)
+            {
+                cout << array[i][j] << ' ';
+            }
+            cout << endl;
+        }
+    }
+
+    short int search_max_string(vector<vector<string>> array) //находим максимальную длинну строки
+    {
+        short int max = 0;
+        for (int i = 0; i < array.size(); i++)
+        {
+            if (array[i][0].size() > max)
+            {
+                max = array[i][0].size();
+            }
+        }
+        return max;
+    }
+
     double search() //поиск блюда, цены, количества
     {
         fstream file;
@@ -58,48 +207,31 @@ private:
             cout << "ошибка 1" << endl;
         }
 
-        bool flag = true;
         float price = -1;
         this->tmp_2 = tmp_2; //делаем слепок меню
 
-        for (int i = 0; i < tmp_2.size(); i++) //ищем имя блюда, что бы потом выцепить его цену и вернуть её
+        bool flag = true;
+        while (flag)
         {
-            string str = tmp_2[i][0].erase(tmp_2[i][0].size() - 1, 1);
-            if (this->order.dish_name == str)
+            for (int i = 0; i < tmp_2.size(); i++) //ищем имя блюда, что бы потом выцепить его цену и вернуть её
             {
-                price = atof(tmp_2[i][1].c_str());
-                flag = false;
-                this->this_dish = line_processing(tmp_2[i], this->n); //содержит нашу строчку с уже изменёмнным значением на n больше
-                this->iter = i;
-                break;
+                string str = tmp_2[i][0];
+                if (this->order.dish_name == str)
+                {
+                    price = atof(tmp_2[i][1].c_str());
+                    this->this_dish = line_processing(tmp_2[i], this->n); //содержит нашу строчку с уже изменёмнным значением на n больше
+                    this->iter = i;
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag) //если блюдо не нашлось
+            {
+                cout << "---->   Блюдо не найдено повторите попытку: ";
+                cin >> this->order.dish_name;
             }
         }
-
-        if (flag) //добавление нового блюда
-        {
-            file.open(name_file, fstream::in | fstream::app);
-            if (file.is_open())
-            {
-                cout << "Не найдено: " << order.dish_name << endl;
-                cout << "Добавление нового: " << order.dish << endl;
-                string tmp;
-                string tmp_swap;
-                tmp += order.dish_name;
-                cout << "Введите стоимость " << order.dish_name << ": ";
-                cin >> tmp_swap;
-                tmp += ',' + tmp_swap + ',' + to_string(order.quantity);
-
-                file << '\n';
-                file << tmp;
-                file.close();
-                price = atof(tmp_swap.c_str());
-            }
-            else
-            {
-                cout << "ошибка 2" << endl;
-            }
-        }
-        return price;
+        return 0;
     }
 
     vector<string> line_processing(vector<string> array, short int n) //обробатываем строка, изменяяя её последний параметр
@@ -115,77 +247,12 @@ private:
         return new_array;
     }
 
-    void rewriting() //запись в файл с последним изменнённым значением
-    {
-        fstream file;
-        file.open(name_file, fstream::out | fstream::trunc);
-        if (file.is_open())
-        {
-            for (int i = 0; i < this->this_dish.size(); i++)
-            {
-                if (i == 1)
-                {
-                    file << ',';
-                }
-                file << this->this_dish[i];
-            }
-            file << '\n';
-
-            for (int i = 0; i < this->tmp_2.size(); i++)
-            {
-                if (i != this->iter)
-                {
-                    for (int j = 0; j < this->tmp_2[i].size(); j++)
-                    {
-                        file << tmp_2[i][j];
-                    }
-                    if (i != this->tmp_2.size() - 1)
-                    {
-                        file << '\n';
-                    }
-                }
-            }
-            file.close();
-        }
-        else
-        {
-            cout << "ошибка 3" << endl;
-        }
-    }
-
-    string to_string(short int n) //перевод в string в int
-    {
-        ostringstream str;
-        str << n;
-        return str.str();
-    }
-
-    dish to_lower(dish str) //перевод в нижний регистр
-    {
-        dish new_str;
-        new_str.dish = str.dish;
-        new_str.price = str.price;
-
-        for (int i = 0; i < str.dish_name.size(); i++)
-        {
-            char c = str.dish_name[i];
-            if (isalpha(c))
-            {
-                new_str.dish_name += tolower(c);
-            }
-            else
-            {
-                new_str.dish_name += c;
-            }
-        }
-        return new_str;
-    }
-
     vector<string> search(string input) //вектор массив строк
     {
         vector<string> array;
 
         string temp;
+        short int triger = 0;
         for (int i = 0; i < input.size(); i++)
         {
             char c = input[i];
@@ -201,7 +268,10 @@ private:
             {
                 if (temp.size() > 0)
                 {
+                    if (triger != 2)
+                        temp.erase(temp.begin() + temp.size() - 1);
                     array.push_back(temp);
+                    triger++;
                 }
                 temp = "";
             }
@@ -211,33 +281,84 @@ private:
     }
 };
 
+void print(vector<vector<string>> array)
+{
+    long int res = 0;
+    cout << "Ваш заказ: " << endl;
+    for (int i = 0; i < array.size(); i++)
+    {
+        res += (stoi(array[i][1]) * stoi(array[i][2]));
+        for (int j = 0; j < array[i].size(); j++)
+        {
+            cout << array[i][j] << ' ';
+        }
+        cout << endl;
+    }
+    cout << "Ваша итоговая цена: " << res << endl;
+}
+
 int main()
 {
-    float num = 0;
-    dish order;
+    vector<string> dish_str = {"desserts", "salads", "snacks"};
+    vector<vector<string>> array;
     while (true)
     {
-        menu sessions;
-        cout << "*---------------------------------------------" << endl;
-        cout << "| Введите dish:";
-        cin >> order.dish;
-        cout << "| Введите dish name:";
-        cin.ignore();
-        getline(cin, order.dish_name);
-        cout << "| Введите колчество этого блюда:";
-        cin >> order.quantity;
-        sessions.add(order, order.quantity);
-        num += sessions.price();
-        cout << "| Сделать ещё заказ ? | (1) - да, (0) - нет:";
-        int n;
-        cin >> n;
-        cout << "*---------------------------------------------" << endl;
-        if (!n)
+        short int requests;
+        cout << "1) Сделать новый заказ" << endl;
+        cout << "2) Добавить пункт заказа" << endl;
+        cout << "3) Завершить заказ и вывести чек" << endl;
+        cout << "4) Показать актуальное меню" << endl;
+        cin >> requests;
+        if (requests == 1)
         {
-            break;
+            array.clear();
+            while (true)
+            {
+                menu session;
+                cout << "Выдерите класс блюда: " << endl;
+                cout << "1) desserts" << endl;
+                cout << "2) salads" << endl;
+                cout << "3) snacks" << endl;
+                cin >> requests;
+                session.print(dish_str[requests - 1]);
+                array.push_back(session.add_dish());
+                cout << "Добавить ещё ? 1-Да 0-Нет ";
+                cin >> requests;
+                if (requests == 0)
+                {
+                    break;
+                }
+            }
+        }
+        if (requests == 2)
+        {
+            while (true)
+            {
+                menu session;
+                cout << "Выдерите класс блюда: " << endl;
+                cout << "1) desserts" << endl;
+                cout << "2) salads" << endl;
+                cout << "3) snacks" << endl;
+                cin >> requests;
+                session.print(dish_str[requests - 1]);
+                array.push_back(session.add_dish());
+                cout << "Добавить ещё ? 1-Да 0-Нет ";
+                cin >> requests;
+                if (requests == 0)
+                {
+                    break;
+                }
+            }
+        }
+        if (requests == 3)
+        {
+            print(array);
+            array.clear();
+        }
+        if (requests == 4)
+        {
+            menu session;
+            session.top_menu(dish_str);
         }
     }
-    cout << "#####################" << endl;
-    cout << "# Ваша сумма: " << num << endl;
-    cout << "#####################" << endl;
 }
