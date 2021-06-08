@@ -9,24 +9,24 @@ using namespace std;
 
 struct dish
 {
-    string dish;      //класс блюда
-    string dish_name; //имя
-    int quantity;     //количество
-    int price_for_1;  //цена за 1 блюдо
+    string dish;
+    string dish_name;
+    int quantity;
+    int price_for_1;
 };
 
 class menu
 {
 private:
-    string name_file = "warehouse/"; //переменная которая хранит какой фал открывать
-    dish order;                      //блюдо
-    vector<vector<string>> tmp_2;    //сам текстовый файл, представленный в векторном формате
-    short int iter;                  //номер нашего блюда в меню
-    short int n;                     //итоговое количество блюда в файле
+    string name_file = "warehouse/";
+    dish order;
+    vector<vector<string>> tmp_2;
+    short int iter;
+    short int n;
 
-    vector<string> this_dish; //конкретно наше блюдо
-    short int num;            //номер числа
-    short int quantity;       //колчиесвто блюда
+    vector<string> this_dish;
+    short int num;
+    short int quantity;
 
 public:
     void print(string str) //вывод меню данного класса блюда
@@ -35,7 +35,7 @@ public:
         this->name_file += str + ".txt";
         file.open(name_file, fstream::in | fstream::out);
         vector<vector<string>> tmp_2;
-        if (file.is_open()) //открываем файл для вывода его содержимого
+        if (file.is_open())
         {
             while (!file.eof())
             {
@@ -119,7 +119,7 @@ public:
             this->name_file += str[i] + ".txt";
             file.open(name_file, fstream::in | fstream::out);
 
-            if (file.is_open()) //открываем файл для вывода его содержимого
+            if (file.is_open())
             {
                 while (!file.eof())
                 {
@@ -141,7 +141,7 @@ public:
     }
 
 private:
-    void top_menu_max(vector<vector<string>> array)
+    void top_menu_max(vector<vector<string>> array) //вывод блюд по количеству заказов, 3 из каждой категории
     {
         bool skip = false;
         while (!skip)
@@ -192,7 +192,7 @@ private:
         fstream file;
         file.open(name_file, fstream::in | fstream::out);
         vector<vector<string>> tmp_2;
-        if (file.is_open()) //ищими такое блюдо
+        if (file.is_open())
         {
             while (!file.eof())
             {
@@ -208,24 +208,24 @@ private:
         }
 
         float price = -1;
-        this->tmp_2 = tmp_2; //делаем слепок меню
+        this->tmp_2 = tmp_2;
 
         bool flag = true;
         while (flag)
         {
-            for (int i = 0; i < tmp_2.size(); i++) //ищем имя блюда, что бы потом выцепить его цену и вернуть её
+            for (int i = 0; i < tmp_2.size(); i++)
             {
                 string str = tmp_2[i][0];
                 if (this->order.dish_name == str)
                 {
                     price = atof(tmp_2[i][1].c_str());
-                    this->this_dish = line_processing(tmp_2[i], this->n); //содержит нашу строчку с уже изменёмнным значением на n больше
+                    this->this_dish = line_processing(tmp_2[i], this->n);
                     this->iter = i;
                     flag = false;
                     break;
                 }
             }
-            if (flag) //если блюдо не нашлось
+            if (flag)
             {
                 cout << "---->   Блюдо не найдено повторите попытку: ";
                 cin >> this->order.dish_name;
@@ -234,7 +234,7 @@ private:
         return 0;
     }
 
-    vector<string> line_processing(vector<string> array, short int n) //обробатываем строка, изменяяя её последний параметр
+    vector<string> line_processing(vector<string> array, short int n) //обробатываем строку, изменя её последний параметр
     {
         vector<string> new_array;
         for (int i = 0; i < array.size() - 1; i++)
